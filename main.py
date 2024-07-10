@@ -1,3 +1,4 @@
+import re
 import subprocess
 import argparse
 
@@ -34,6 +35,17 @@ def scan_ports(target_ip, ports):
         if port_check(target_ip, port):
             print(f"Port {port} is open!")
 
+def domain_to_ip(domain):
+    try:
+        result = subprocess.run(['host', domain], stdout=subprocess.PIPE, universal_newlines=True)
+        output = result.stdout
+
+        ip_addr = re.search(r'has address (\S+)', output)
+        return ip_addr.group(1)
+
+    except Exception as e:
+        return None
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Scan ports on a target IP address.',  usage='python3 %(prog)s ip_address [-p [PORTS ...]]')
@@ -44,6 +56,14 @@ if __name__ == "__main__":
 
     ip_address = args.ip_address
 
+    if re.match(r'^[a-zA-Z0-9.-]+$', ip_address):
+        ip_address_real = domain_to_ip(ip_address)
+
+    else:
+        ip_address_real = ip_address
+
+
+
     if args.ports:
         ports = []
         for port in args.ports:
@@ -53,10 +73,10 @@ if __name__ == "__main__":
             else:
                 ports.append(int(port))
     else:
-        ports = range(1, 65535)
+        ports = range(1, 65536)
 
-    if ping_to_target(ip_address):
-        print(f"{ip_address} is Accessible")
-        scan_ports(ip_address, ports)
+    if ping_to_target(ip_address_real):
+        print(f"{ip_address_real} is Accessible")
+        scan_ports(ip_address_real, ports)
     else:
-        print(f"{ip_address} is NOT Accessible")
+        print(f"{ip_address_real} is NOT Accessible")
