@@ -6,7 +6,7 @@ def ping_to_target(target_ip):
     try:
         ping = subprocess.run(['ping', '-c', '1', target_ip], stdout=subprocess.PIPE, universal_newlines=True)
         output = ping.stdout
-        if "bir" in output:
+        if "1 received" in output:
             return True
         else:
             return False
